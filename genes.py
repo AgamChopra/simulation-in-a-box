@@ -51,12 +51,12 @@ def split_seq(utg):
     return source, source_id, sink_type, sink_id, recurrent, weight
 
 
-gene = 'AX0W1ZXX'
-print(gene)
+gene = 'AX0W1ZXX' #<- how gene is stored(in memory) and displayed(to user)
+print(gene, untangle(gene))
 for i in range(5000):
-    utg = untangle(gene)
-    utg = mutate(global_mutation, utg)
-    gene = tangle(utg)
+    utg = untangle(gene) #<- gene is untangled to a binary sequence to be used by the cell
+    utg = mutate(global_mutation, utg) #<- during reproduction, there is a small chance(global_mutation factor) that a bit gets flipped in the untangled binary gene sequence.
+    gene = tangle(utg) #<- After reproduction, the gene is tangled and stored in memory.
     if((i+1) % 50 == 0):
-        print(gene)
+        print(gene, untangle(gene))
     # print(split_seq(utg))

@@ -1,15 +1,15 @@
-from cells import *
-import torch
 import sys
 sys.path.append('E:\evolution')
+from cells import *
+import torch
 
 C = 8.98755E9
 G = 6.67408E-11
-N = 1E-31
-N2 = 1E-31
+N = 1E-14
+N2 = 1E-14
 epsilon = 1E-9
 g = 0  # 9.8#grav*
-lam = 0  # -0.05#Friction*
+lam = -1E-6  # -0.05#Friction*
 
 
 class cell_physics():
@@ -31,7 +31,7 @@ class cell_physics():
         dX = d - torch.tensor((self.pos[0], self.pos[1])).unsqueeze(0).float()
         R2 = torch.sum(dX**2, dim=1).unsqueeze(1) + epsilon
         R4 = torch.sum(dX**4, dim=1).unsqueeze(1) + epsilon
-        F = ((G*self.mass*m2 - C*self.charge*q2)/R2) - (N/R4) + (N2*torch.where(q2 == self.charge, 1, 0) *
+        F = ((G*self.mass*m2 - C*self.charge*q2)/R2) - (N*m2/(self.mass*R4)) + (N2*torch.where(q2 == self.charge, 1, 0) *
                                                                  torch.where(m2 == self.mass, 1, 0)/R2)  # <- attracting like particles to each other using kronecker delta
         dr = torch.sum((F*dX/(R2**(1/2)))/self.mass, dim=0) + \
             torch.tensor((lam*self.dx, lam*self.dy + g))
@@ -47,30 +47,32 @@ class cell_physics():
 
 
 # %%
-K = 100
+K = 800
 screen, _ = setup_environment(900, 1600)
 o = []
 op = []
-charge = [-1.6E-19, 1.6E-19]  # [1E-9,1E-9]#1.67E-9
-[op.append(cell_physics(charge[1], 1.67E-27, [random.randint(-i*2+800, i*2+800), random.randint(-i*2+450, i*2+450)], 0, 0))
- for i in range(25)]  # [random.randint(0,1600),random.randint(0,900)]
+charge = [1.6E-6, 0]  # [1E-9,1E-9]#1.67E-9
+[op.append(cell_physics(charge[1], 1E8, [random.randint(-i+800, i+800), random.randint(-i+450, i+450)], 0, 0))
+ for i in range(K)]  # [random.randint(0,1600),random.randint(0,900)]
 [o.append(cell(screen, Point(op[i].pos[0], op[i].pos[1]), [random.randint(
-    200, 250), random.randint(70, 100), random.randint(70, 100)], 2)) for i in range(25)]
-[op.append(cell_physics(charge[0], 1E-30, [random.randint(-i*2+800, i*2+800), random.randint(-i*2+450, i*2+450)], 0, 0))
- for i in range(25, 50)]  # [random.randint(0,1600),random.randint(0,900)]
+    200, 250), random.randint(70, 100), random.randint(70, 100)], 2)) for i in range(K)]
+'''
+[op.append(cell_physics(charge[0], 1E-4, [random.randint(-i*2+800, i*2+800), random.randint(-i*2+450, i*2+450)], 0, 0))
+ for i in range(75, 100)]  # [random.randint(0,1600),random.randint(0,900)]
 [o.append(cell(screen, Point(op[i].pos[0], op[i].pos[1]), [random.randint(
-    70, 100), random.randint(70, 100), random.randint(200, 250)], 2)) for i in range(25, 50)]
-[op.append(cell_physics(0, 1E-25, [random.randint(-i+800, i+800), random.randint(-i+450, i+450)], 0, 0))
- for i in range(50, 100)]  # [random.randint(0,1600),random.randint(0,900)]
-[o.append(cell(screen, Point(op[i].pos[0], op[i].pos[1]), [random.randint(70, 100),
-          random.randint(200, 250), random.randint(70, 100)], 2)) for i in range(50, 100)]
+    70, 100), random.randint(70, 100), random.randint(200, 250)], 2)) for i in range(75, 100)]
+[op.append(cell_physics(0, 1E-9, [random.randint(-i+800, i+800), random.randint(-i+450, i+450)], 0, 0))
+ for i in range(100, 250)]  # [random.randint(0,1600),random.randint(0,900)]
+[o.append(cell(screen, Point(op[i].pos[0], op[i].pos[1]), [random.randint(70, 200),
+          random.randint(200, 250), random.randint(70, 100)], 2)) for i in range(100, 250)]
+'''
 screen.getKey()
 k = 0.10
 q2 = [op[i].charge for i in range(K)]
 q2 = torch.tensor((q2)).unsqueeze(1)
 m2 = [op[i].mass for i in range(K)]
 m2 = torch.tensor((m2)).unsqueeze(1)
-while True:
+for i in range(10000):
     d = [[op[i].pos[0], op[i].pos[1]] for i in range(K)]
     d = torch.tensor((d))
     for i in range(K):
