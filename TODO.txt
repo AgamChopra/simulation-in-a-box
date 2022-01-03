@@ -1,0 +1,10 @@
+Ideas:
+
+Sliders to ctrl env var. (Initial conditions)
+Options to add disasters/extinction events. (can be randomized)
+Add visuals for gene data. (1 gene dedicated to color of cell)
+Figure out dictionary.
+Write pseudo code for NN.
+
+Darwin - working on rendring engine
+Agam - working on Physics engine and NN pseudocode
