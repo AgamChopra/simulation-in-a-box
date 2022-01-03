@@ -12,7 +12,7 @@ NIGHT = (10,11,15)
 
 FPS = 60
 
-SCALE = (100,100)
+SCALE = (10,10)
 
 SAMPLE_CELL = pygame.image.load(r'E:\evolution\assets\sample_cell.png')
 SAMPLE_CELL = pygame.transform.scale(SAMPLE_CELL, SCALE)
