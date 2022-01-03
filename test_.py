@@ -56,7 +56,7 @@ FPS = 144
 
 SCALE = (4,4)
 
-PARTICLE = pygame.image.load(r'E:\evolution\assets\remains.png')
+PARTICLE = pygame.image.load(r'assets/remains.png')
 PARTICLE = pygame.transform.scale(PARTICLE, SCALE)
 
 K = 100
