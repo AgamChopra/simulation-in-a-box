@@ -12,9 +12,9 @@ NIGHT = (10,11,15)
 
 FPS = 60
 
-SCALE = (10,10)
+SCALE = (100,100)
 
-SAMPLE_CELL = pygame.image.load(r'E:\evolution\assets\sample_cell.png')
+SAMPLE_CELL = pygame.image.load(r'assets/sample_cell.png')
 SAMPLE_CELL = pygame.transform.scale(SAMPLE_CELL, SCALE)
 
 def blitRotateCenter(surf, image, topleft, angle):
@@ -52,7 +52,7 @@ def main():
                 day_night = NIGHT
             else: day_night = DAY
         if scene_time > 1000 and random.random() < 0.001:
-            cell = pygame.image.load(r'E:\evolution\assets\remains.png')
+            cell = pygame.image.load(r'assets/remains.png')
             cell = pygame.transform.scale(cell, SCALE)
             alive = False
         if alive:
