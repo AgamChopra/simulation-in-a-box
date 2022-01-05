@@ -6,5 +6,5 @@ Add visuals for gene data. (1 gene dedicated to color of cell)
 Figure out dictionary.
 Write pseudo code for NN.
 
-Darwin - working on rendring engine
+Darwin - working on rendering engine
 Agam - working on Physics engine and NN pseudocode

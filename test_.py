@@ -47,17 +47,13 @@ WIDTH, HEIGHT = 1600, 900
 DISH = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption('Evolve')
 
-WHITE = (255,255,255)
 BLACK = (0,0,0)
 DAY = (20,20,19)
 NIGHT = (10,11,15)
 
 FPS = 144
 
-SCALE = (4,4)
-
-PARTICLE = pygame.image.load(r'assets/remains.png')
-PARTICLE = pygame.transform.scale(PARTICLE, SCALE)
+RADIUS = 15
 
 K = 100
 K_list = range(K)
@@ -73,8 +69,14 @@ def draw_window(op,q2,m2):
     for i in K_list:
         global_info = [torch.cat([d[:i],d[i:]]), torch.cat([m2[:i],m2[i:]]), torch.cat([q2[:i],q2[i:]])] if i < K-1 else [d[:i], m2[:i], q2[:i]]
         op[i].update(WIDTH-10, HEIGHT-10, global_info)
-        DISH.blit(PARTICLE, (int(op[i].pos[0]),int(op[i].pos[1])))
+        pygame.draw.circle(DISH, [random.randrange(255), random.randrange(255), random.randrange(255)], (int(op[i].pos[0]),int(op[i].pos[1])), RADIUS)
     pygame.display.update()
+
+
+def color(val):
+    s = str(val)
+    tup = (s[:3], s[3:6], s[6:])
+    return list(map(lambda x: int(x), tup))
 
 def main():
     clock = pygame.time.Clock()
