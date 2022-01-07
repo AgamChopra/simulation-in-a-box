@@ -8,3 +8,9 @@ Write pseudo code for NN.
 
 Darwin - working on rendering engine
 Agam - working on Physics engine and NN pseudocode
+
+More energy a cell has stored, slower their lifespan clock ticks.
+Add neuron that allows cells to spit out food. (For hunters, this will induce parenting, and for plants, it will promote symbiotic relationships)
+The excrement of cells not relying on photosynthesis increases local nutrients thus wanting plants to attract hunters, etc.
+When a cell dies, it releases some unused energy stored(similar to slither.io) and for some time, a massive local boost to nutrients occurs where the cell died. This should develop plants that are able to attract and kill hunters…
+Allow plants and hunters to develop poison neurons that contain information regarding if the cell is killed and eaten by another cell and if thy contain a specific neuron(match gene), kill that neuron.

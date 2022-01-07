@@ -7,8 +7,8 @@ G = 6.67408E-11
 N = 1E-14
 N2 = 1E-14
 epsilon = 1E-9
-g = 9.8#grav*
-lam = -0.05#Friction*
+g = 0#9.8#grav*
+lam = -0.01#Friction*
 
 class cell_physics():
 
@@ -51,7 +51,7 @@ BLACK = (0,0,0)
 DAY = (20,20,19)
 NIGHT = (10,11,15)
 
-FPS = 144
+FPS = 60
 
 RADIUS = 15
 
@@ -82,11 +82,9 @@ def main():
     clock = pygame.time.Clock()
     run = True 
     op = []
-    charge = [1E-9,-1E-9]
+    charge = [1E-15,-1E-9]
     for i in K_list:
-        if i < 0.99*K:
-            [op.append(cell_physics(charge[0], 9E-8, [random.randint(10, WIDTH-10), random.randint(10, HEIGHT-10)], random.randint(-10, 10)*0, random.randint(-10, 10)*0))]
-        else: [op.append(cell_physics(0, 7E-8, [WIDTH/2, HEIGHT/2], random.randint(-1, 1)*0, random.randint(-1, 1)*0))]
+        [op.append(cell_physics(charge[0], 9E-9, [random.randint(10, WIDTH-10), random.randint(10, HEIGHT-10)], random.randint(-10, 10)*10, random.randint(-10, 10)*10))]
     q2 = [op[i].charge for i in range(K)]
     q2 = torch.tensor((q2)).unsqueeze(1)
     m2 = [op[i].mass for i in range(K)]
