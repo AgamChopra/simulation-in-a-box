@@ -14,22 +14,18 @@ decodings = dict([(value, key) for key, value in encodings.items()])
 
 
 def untangle(gene):
-    sequence = list(gene)
-    sequence = encodings[sequence[0]]+encodings[sequence[1]]+encodings[sequence[2]]+encodings[sequence[3]
-                                                                                              ]+encodings[sequence[4]]+encodings[sequence[5]]+encodings[sequence[6]]+encodings[sequence[7]]
+    sequence = ''
+    for char in gene:
+        sequence += encodings[char] 
     return sequence
 
 
-def mutate(mutation_factor, sequence):
+def mutate(sequence):
     sequence = list(sequence)
-    if mutation_factor > random.random():
-        i = random.randint(0, len(sequence)-1)
-        if sequence[i] == '0':
-            sequence[i] = '1'
-        else:
-            sequence[i] = '0'
-    sequence = ''.join(sequence)
-    return sequence
+    if global_mutation > random.random():
+        i = random.randrange(0, 40)
+        sequence[i] = '1' if sequence[i] == '0' else '0'
+    return ''.join(sequence)
 
 
 def tangle(sequence):
@@ -55,7 +51,7 @@ gene = 'AX0W1ZXX' #<- how gene is stored(in memory) and displayed(to user)
 print(gene, untangle(gene))
 for i in range(5000):
     utg = untangle(gene) #<- gene is untangled to a binary sequence to be used by the cell
-    utg = mutate(global_mutation, utg) #<- during reproduction, there is a small chance(global_mutation factor) that a bit gets flipped in the untangled binary gene sequence.
+    utg = mutate(utg) #<- during reproduction, there is a small chance(global_mutation factor) that a bit gets flipped in the untangled binary gene sequence.
     gene = tangle(utg) #<- After reproduction, the gene is tangled and stored in memory.
     if((i+1) % 50 == 0):
         print(gene, untangle(gene))
