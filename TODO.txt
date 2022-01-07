@@ -6,7 +6,7 @@ Add visuals for gene data. (1 gene dedicated to color of cell)
 Figure out dictionary.
 Write pseudo code for NN.
 
-Darwin - working on rendering engine
+Darwin - 
 Agam - working on Physics engine and NN pseudocode
 
 More energy a cell has stored, slower their lifespan clock ticks.
