@@ -55,46 +55,67 @@ FPS = 60
 
 RADIUS = 15
 
-K = 100
-K_list = range(K)
-
-def blitRotateCenter(surf, image, topleft, angle):
-    rotated_image = pygame.transform.rotate(image, angle)
-    new_rect = rotated_image.get_rect(center = image.get_rect(topleft = topleft).center)
-    surf.blit(rotated_image, new_rect.topleft)
-
-def draw_window(op,q2,m2):
-    DISH.fill(BLACK)    
-    d = torch.tensor([[op[i].pos[0], op[i].pos[1]] for i in K_list])
-    for i in K_list:
-        global_info = [torch.cat([d[:i],d[i:]]), torch.cat([m2[:i],m2[i:]]), torch.cat([q2[:i],q2[i:]])] if i < K-1 else [d[:i], m2[:i], q2[:i]]
-        op[i].update(WIDTH-10, HEIGHT-10, global_info)
-        pygame.draw.circle(DISH, [random.randrange(255), random.randrange(255), random.randrange(255)], (int(op[i].pos[0]),int(op[i].pos[1])), RADIUS)
+def draw_window(tensor):
+    DISH.fill(BLACK)
+    for i in tensor:
+        pygame.draw.circle(DISH, [i[2], i[3], i[4]], (i[0], i[1]), RADIUS)
     pygame.display.update()
 
-
-def color(val):
-    s = str(val)
-    tup = (s[:3], s[3:6], s[6:])
-    return list(map(lambda x: int(x), tup))
 
 def main():
     clock = pygame.time.Clock()
     run = True 
-    op = []
-    charge = [1E-15,-1E-9]
-    for i in K_list:
-        [op.append(cell_physics(charge[0], 9E-9, [random.randint(10, WIDTH-10), random.randint(10, HEIGHT-10)], random.randint(-10, 10)*10, random.randint(-10, 10)*10))]
-    q2 = [op[i].charge for i in range(K)]
-    q2 = torch.tensor((q2)).unsqueeze(1)
-    m2 = [op[i].mass for i in range(K)]
-    m2 = torch.tensor((m2)).unsqueeze(1)
     while run:
         clock.tick(FPS)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                run = False   
-        draw_window(op,q2,m2)              
+                run = False
+        
+        width = torch.randint(1600,(100, 1)).to(dtype=torch.float)
+        height = torch.randint(900,(100, 1)).to(dtype=torch.float)
+        vx = torch.randint(150,(100, 1)).to(dtype=torch.float)
+        vy = torch.randint(150,(100, 1)).to(dtype=torch.float)
+        cell_dynamics = torch.cat((width, height, vx, vy), dim = 1)
+        color = torch.randint(255, (100, 3))
+
+        COLL_DIST = 1.
+
+        v = cell_dynamics[:,2:] / 10
+        #print('velo:',v)
+
+        a = cell_dynamics[:,:2]
+        #print('pos:',a)
+
+        dist = torch.cdist(a, a)
+        #print('dist:',dist)
+
+        v_col = torch.where(dist > COLL_DIST, 1., 0.)
+        #print(v_col)
+
+        v_col = torch.sum(v_col,dim=1)
+        #print(v_col)
+
+        theta = v.shape[0] - 1
+        #print(theta)
+
+        v_col = torch.where(v_col < theta, 0., 1.)
+        #print(v_col)
+
+        v = v * v_col.view(v.shape[0],1)
+        #print(v)
+
+        #pos update -> arty -> rend
+        SPF = 1 # 1 sec/frame
+
+        dx = v * SPF
+        #print(dx)
+
+        pos = (a + dx).to(dtype = torch.int32)
+        #print(pos)
+
+        arty = torch.cat((pos,color),dim = 1)
+
+        draw_window(arty)              
     pygame.quit()
 
 if __name__ == '__main__':

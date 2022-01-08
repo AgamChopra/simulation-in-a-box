@@ -6,7 +6,7 @@ Add visuals for gene data. (1 gene dedicated to color of cell)
 Figure out dictionary.
 Write pseudo code for NN.
 
-Darwin - 
+Darwin - Buy new headphones
 Agam - working on Physics engine and NN pseudocode
 
 More energy a cell has stored, slower their lifespan clock ticks.
@@ -14,3 +14,6 @@ Add neuron that allows cells to spit out food. (For hunters, this will induce pa
 The excrement of cells not relying on photosynthesis increases local nutrients thus wanting plants to attract hunters, etc.
 When a cell dies, it releases some unused energy stored(similar to slither.io) and for some time, a massive local boost to nutrients occurs where the cell died. This should develop plants that are able to attract and kill hunters…
 Allow plants and hunters to develop poison neurons that contain information regarding if the cell is killed and eaten by another cell and if thy contain a specific neuron(match gene), kill that neuron.
+
+Only Collision Physics Laws:
+  If Particles have a distance <= COLL_DIST, they collide and stop. We assume that the cells are very squishy and sticky in a relatively dense medium.
