@@ -81,40 +81,18 @@ def main():
         COLL_DIST = 1.
 
         v = cell_dynamics[:,2:] / 10
-        #print('velo:',v)
-
         a = cell_dynamics[:,:2]
-        #print('pos:',a)
-
         dist = torch.cdist(a, a)
-        #print('dist:',dist)
-
         v_col = torch.where(dist > COLL_DIST, 1., 0.)
-        #print(v_col)
-
         v_col = torch.sum(v_col,dim=1)
-        #print(v_col)
-
         theta = v.shape[0] - 1
-        #print(theta)
-
         v_col = torch.where(v_col < theta, 0., 1.)
-        #print(v_col)
-
         v = v * v_col.view(v.shape[0],1)
-        #print(v)
-
-        #pos update -> arty -> rend
         SPF = 1 # 1 sec/frame
-
         dx = v * SPF
-        #print(dx)
-
         pos = (a + dx).to(dtype = torch.int32)
-        #print(pos)
 
         arty = torch.cat((pos,color),dim = 1)
-
         draw_window(arty)              
     pygame.quit()
 
