@@ -1,6 +1,7 @@
 import torch
 from matplotlib import pyplot as plt
 import random
+import numpy
 
 # Medium = H2O. Physical properties of H2O -> https://www.engineersedge.com/physics/water__density_viscosity_specific_weight_13146.htm
 
@@ -33,13 +34,13 @@ def Fd(T,r,v):
 
 def Solar_E(t, bar, a, b):
     # Solar Energy. Amount of Energy available per photo_org_neuron per timestep.
-    return torch.log(20 + torch.abs(torch.sum(bar * torch.sin(a*t + b)) + torch.exp(torch.tensor(torch.pi * random.random())))).to(dtype=torch.int32)
+    return torch.log(20 + torch.abs(torch.sum(bar * torch.sin(a*t + b)) + torch.exp(torch.pi * torch.rand(())))).to(dtype=torch.int32)
 
 def N1(t, bar, a, b):
-    return 2 + torch.abs(torch.sum(bar * torch.sin(a*t + b)) + torch.exp(torch.tensor(random.random())))
+    return 2 + torch.abs(torch.sum(bar * torch.sin(a*t + b)) + torch.exp(torch.rand(())))
 
 def N2(t, bar, a, b):
-    return 2 + torch.abs(torch.sum(bar * torch.sin(a*t + b)) + torch.exp(torch.tensor(random.random())))
+    return 2 + torch.abs(torch.sum(bar * torch.sin(a*t + b)) + torch.exp(torch.rand(())))
 
 def main():
     for i in range(0,100):
@@ -73,3 +74,52 @@ def main():
 #%%   
 if __name__ == '__main__':
     main()
+#%%
+
+cell_dynamics = torch.randint(90,(400, 4)).to(dtype=torch.float)#[Cells[Alive],4]  x, y, vx, vy
+color = torch.randint(255, (400, 3))
+
+#print(cell_dynamics)
+#print(color)
+
+#Only Collision Physics:
+    #Rules:
+        #If Particles have a distance <= COLL_DIST, they collide and stop. We assume that the cells are very squishy and sticky in a relatively dense medium.
+        
+COLL_DIST = 1.
+
+v = cell_dynamics[:,2:] / 10
+#print('velo:',v)
+
+a = cell_dynamics[:,:2]
+#print('pos:',a)
+
+dist = torch.cdist(a, a)
+#print('dist:',dist)
+
+v_col = torch.where(dist > COLL_DIST, 1., 0.)
+#print(v_col)
+
+v_col = torch.sum(v_col,dim=1)
+#print(v_col)
+
+theta = v.shape[0] - 1
+#print(theta)
+
+v_col = torch.where(v_col < theta, 0., 1.)
+#print(v_col)
+
+v = v * v_col.view(v.shape[0],1)
+#print(v)
+
+#pos update -> arty -> rend
+SPF = 1 # 1 sec/frame
+
+dx = v * SPF
+#print(dx)
+
+pos = (a + dx).to(dtype = torch.int32)
+#print(pos)
+
+arty = torch.cat((pos,color),dim = 1)
+#print(arty)
