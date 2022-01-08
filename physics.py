@@ -130,5 +130,15 @@ dx = v * SPF
 pos = (a + dx).to(dtype = torch.int32)
 #print(pos)
 
+boundry_inv_x = torch.where(pos[:,0] > 1600, -1, 1)
+boundry_inv_y = torch.where(pos[:,1] > 900, -1, 1)
+
+v = v * torch.cat((boundry_inv_x.reshape(v.shape[0],1),boundry_inv_y.reshape(v.shape[0],1)),1)
+
+boundry_zero = torch.where(pos < 0, -1, 1)
+
+v = v * boundry_zero
+
+print(v)
 arty = torch.cat((pos,color),dim = 1)
 #print(arty.shape)
