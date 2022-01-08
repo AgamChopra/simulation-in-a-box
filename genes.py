@@ -32,9 +32,12 @@ def tangle(sequence):
     gene = []
     [gene.append(decodings[sequence[i:i+5]])
      for i in range(0, len(sequence), 5)]
-    gene = ''.join(gene)
-    return gene
+    return ''.join(gene)
 
+def bin_to_float(string):
+    num1 = sum([int(string[1 + i]) * 2 ** (10 - i) for i in range(11)])
+    num2 = sum([int(string[12 + i]) * 2 ** -(1 + i) for i in range(0,11)])
+    return num1 + num2 if string[0] == '0' else -(num1 + num2)
 
 def split_seq(utg):
     source = utg[0]  # input or hidden
@@ -42,8 +45,8 @@ def split_seq(utg):
     sink_type = utg[8]  # sink/aka the output. output neuron or hidden neuron
     sink_id = utg[9:16]  # id of output neuron or output hidden neuron
     recurrent = utg[16]  # if the neuron has memory
-    # value of weight first bit represents the sign(0:+ve,1:-ve)
-    weight = utg[17:]
+    weight = utg[17:]# value of weight's first bit represents the sign(0:+ve,1:-ve) # weight = [sign] [11 bits] [.] [11 bits]. ex- 1 11111111111 . 11111111111 -> -2047.99951171875
+    ##lr = utg[40:] sequence of 5 bits
     return source, source_id, sink_type, sink_id, recurrent, weight
 
 
@@ -55,4 +58,6 @@ for i in range(5000):
     gene = tangle(utg) #<- After reproduction, the gene is tangled and stored in memory.
     if((i+1) % 50 == 0):
         print(gene, untangle(gene))
-    # print(split_seq(utg))
+        source, source_id, sink_type, sink_id, recurrent, weight = split_seq(utg)
+        print(source, source_id, sink_type, sink_id, recurrent, weight)
+        print('weight:', bin_to_float(weight))
