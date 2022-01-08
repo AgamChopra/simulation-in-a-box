@@ -6,8 +6,8 @@ DISH = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption('Evolve')
 
 BLACK = (0,0,0)
-FPS = 60
-RADIUS = 10
+FPS = 144
+RADIUS = 5
 
 
 def draw_window(tensor):
@@ -21,14 +21,14 @@ def main():
     clock = pygame.time.Clock()
     run = True 
     
-    width = torch.randint(1600,(100, 1)).to(dtype=torch.float)
-    height = torch.randint(900,(100, 1)).to(dtype=torch.float)
-    vx = torch.randint(-150,150,(100, 1)).to(dtype=torch.float)
-    vy = torch.randint(-150,150,(100, 1)).to(dtype=torch.float)
+    width = torch.randint(1600,(400, 1)).to(dtype=torch.float)
+    height = torch.randint(900,(400, 1)).to(dtype=torch.float)
+    vx = torch.randint(-150,150,(400, 1)).to(dtype=torch.float)
+    vy = torch.randint(-150,150,(400, 1)).to(dtype=torch.float)
     cell_dynamics = torch.cat((width, height, vx, vy), dim = 1)
-    color = torch.randint(255, (100, 3))
+    color = torch.randint(255, (400, 3))
 
-    COLL_DIST = 3.
+    COLL_DIST = RADIUS/2
     
     v = cell_dynamics[:,2:] / 10
     a = cell_dynamics[:,:2]
