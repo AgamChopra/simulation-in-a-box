@@ -75,8 +75,10 @@ def main():
 if __name__ == '__main__':
     main()
 #%%
+MASS = 1E-3
+SPF = 1 # 1 sec/frame
 
-cell_dynamics = torch.randint(90,(400, 4)).to(dtype=torch.float)#[Cells[Alive],4]  x, y, vx, vy
+cell_dynamics = torch.randint(30,(400, 4)).to(dtype=torch.float)#[Cells[Alive],4]  x, y, vx, vy
 color = torch.randint(255, (400, 3))
 
 #print(cell_dynamics)
@@ -90,6 +92,15 @@ COLL_DIST = 1.
 
 v = cell_dynamics[:,2:] / 10
 #print('velo:',v)
+
+F_drag = Fd(33,15E-6,v)
+#print(F_drag)
+
+dv_drag = F_drag * SPF / MASS
+#print(dv_drag)
+#print(v[:5])
+v = v + dv_drag
+#print(v[:5])
 
 a = cell_dynamics[:,:2]
 #print('pos:',a)
@@ -110,11 +121,9 @@ v_col = torch.where(v_col < theta, 0., 1.)
 #print(v_col)
 
 v = v * v_col.view(v.shape[0],1)
-#print(v)
+#print(v[:5])
 
 #pos update -> arty -> rend
-SPF = 1 # 1 sec/frame
-
 dx = v * SPF
 #print(dx)
 
@@ -122,4 +131,4 @@ pos = (a + dx).to(dtype = torch.int32)
 #print(pos)
 
 arty = torch.cat((pos,color),dim = 1)
-#print(arty)
+#print(arty.shape)
