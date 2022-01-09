@@ -22,14 +22,16 @@ def main():
     clock = pygame.time.Clock()
     run = True 
     
-    width = torch.randint(1600,(400, 1)).to(dtype=torch.float)
-    height = torch.randint(900,(400, 1)).to(dtype=torch.float)
-    vx = torch.randint(-500,500,(400, 1)).to(dtype=torch.float)
-    vy = torch.randint(-500,500,(400, 1)).to(dtype=torch.float)
+    N = 5000
+    
+    width = torch.randint(1600,(N, 1)).to(dtype=torch.float)
+    height = torch.randint(900,(N, 1)).to(dtype=torch.float)
+    vx = torch.randint(-500,500,(N, 1)).to(dtype=torch.float)
+    vy = torch.randint(-500,500,(N, 1)).to(dtype=torch.float)
     cell_dynamics = torch.cat((width, height, vx, vy), dim = 1)
-    color = torch.randint(255, (400, 3))
+    color = torch.randint(255, (N, 3))
 
-    COLL_DIST = RADIUS/2
+    COLL_DIST = RADIUS * 2
     
     time_step = 0
     
