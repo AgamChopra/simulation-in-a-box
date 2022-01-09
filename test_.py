@@ -1,12 +1,13 @@
 import pygame
 import torch
+import physics
 
 WIDTH, HEIGHT = 1600, 900
 DISH = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption('Evolve')
 
 BLACK = (0,0,0)
-FPS = 144
+FPS = 60
 RADIUS = 5
 
 
@@ -23,42 +24,27 @@ def main():
     
     width = torch.randint(1600,(400, 1)).to(dtype=torch.float)
     height = torch.randint(900,(400, 1)).to(dtype=torch.float)
-    vx = torch.randint(-150,150,(400, 1)).to(dtype=torch.float)
-    vy = torch.randint(-150,150,(400, 1)).to(dtype=torch.float)
+    vx = torch.randint(-500,500,(400, 1)).to(dtype=torch.float)
+    vy = torch.randint(-500,500,(400, 1)).to(dtype=torch.float)
     cell_dynamics = torch.cat((width, height, vx, vy), dim = 1)
     color = torch.randint(255, (400, 3))
 
     COLL_DIST = RADIUS/2
     
-    v = cell_dynamics[:,2:] / 10
-    a = cell_dynamics[:,:2]
+    time_step = 0
     
     while run:
         clock.tick(FPS)
+        
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
-
-        dist = torch.cdist(a, a) # sus
-        v_col = torch.where(dist > COLL_DIST, 1., 0.)
-        v_col = torch.sum(v_col,dim=1)
-        theta = v.shape[0] - 1
-        v_col = torch.where(v_col < theta, 0., 1.)
-        v = v * v_col.view(v.shape[0],1)
-        SPF = 1 # 1 sec/frame
-        dx = v * SPF
-        pos = (a + dx).to(dtype = torch.int32)
-        a = pos.to(dtype = torch.float)
-        boundry_inv_x = torch.where(pos[:,0] > 1600, -1, 1)
-        boundry_inv_y = torch.where(pos[:,1] > 900, -1, 1)
-        v = v * torch.cat((boundry_inv_x.reshape(v.shape[0],1),boundry_inv_y.reshape(v.shape[0],1)),1)
-        boundry_zero = torch.where(pos < 0, -1, 1)
-        v = v * boundry_zero
-        arty = torch.cat((pos,color),dim = 1)
-        draw_window(arty)              
+                
+        arty, cell_dynamics = physics.dynamics(cell_dynamics, color, time_step, COLL_DIST=COLL_DIST, RADIUS=RADIUS, MASS=1E-6, WIDTH=WIDTH, HEIGHT=HEIGHT)
+        draw_window(arty) 
+        time_step += 1
     pygame.quit()
+
 
 if __name__ == '__main__':
     main()
-
-
