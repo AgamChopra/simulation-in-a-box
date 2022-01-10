@@ -34,10 +34,12 @@ def tangle(sequence):
      for i in range(0, len(sequence), 5)]
     return ''.join(gene)
 
+
 def bin_to_float(string):
     num1 = sum([int(string[1 + i]) * 2 ** (10 - i) for i in range(11)])
     num2 = sum([int(string[12 + i]) * 2 ** -(1 + i) for i in range(0,11)])
     return num1 + num2 if string[0] == '0' else -(num1 + num2)
+
 
 def split_seq(utg):
     source = utg[0]  # input or hidden
@@ -49,15 +51,24 @@ def split_seq(utg):
     ##lr = utg[40:] sequence of 5 bits
     return source, source_id, sink_type, sink_id, recurrent, weight
 
-
-gene = 'AX0W1ZXX' #<- how gene is stored(in memory) and displayed(to user)
-print(gene, untangle(gene))
-for i in range(5000):
-    utg = untangle(gene) #<- gene is untangled to a binary sequence to be used by the cell
-    utg = mutate(utg) #<- during reproduction, there is a small chance(global_mutation factor) that a bit gets flipped in the untangled binary gene sequence.
-    gene = tangle(utg) #<- After reproduction, the gene is tangled and stored in memory.
-    if((i+1) % 50 == 0):
-        print(gene, untangle(gene))
-        source, source_id, sink_type, sink_id, recurrent, weight = split_seq(utg)
-        print(source, source_id, sink_type, sink_id, recurrent, weight)
-        print('weight:', bin_to_float(weight))
+def main():
+    gene = 'AX0W1ZXX' #<- how gene is stored(in memory) and displayed(to user)
+    print(gene, untangle(gene))
+    for i in range(5000):
+        utg = untangle(gene) #<- gene is untangled to a binary sequence to be used by the cell
+        utg = mutate(utg) #<- during reproduction, there is a small chance(global_mutation factor) that a bit gets flipped in the untangled binary gene sequence.
+        gene = tangle(utg) #<- After reproduction, the gene is tangled and stored in memory.
+        if((i+1) % 50 == 0):
+            print(gene, untangle(gene))
+            source, source_id, sink_type, sink_id, recurrent, weight = split_seq(utg)
+            print(source, source_id, sink_type, sink_id, recurrent, weight)
+            print('weight:', bin_to_float(weight))
+            
+#%%   
+if __name__ == '__main__':
+    main()
+        
+# Neuron gene -> 40 bits
+# Color gene -> 24 bits (r,g,b) + 1 unused bit
+# Vital gene (Max dv, Max Energy, Current Energy, Food Type(Self/Generator(Photo or Thermal),Predator,Scavenger,Paracitic,Combination), Preferred food color(only if cell is predator or both), 
+#             reproduction style(uni,2 parent, both), ...)

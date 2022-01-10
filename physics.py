@@ -95,7 +95,7 @@ def dynamics(cell_dynamics, color, time_step, RADIUS = 10, COLL_DIST = 10., MASS
 
 
 def main():
-    for i in range(0,100):
+    for i in range(0,100000):
         solar.append(Solar_E(i, S_bar, a_S, b_S))
         temp.append(T(i,T_coeff, T_bar, a_T, b_T,solar[-1]))
         mu.append(MU(temp[-1]))
