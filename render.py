@@ -22,14 +22,15 @@ def main():
     clock = pygame.time.Clock()
     run = True 
     
-    N = 2000
+    N = 1000
     
-    width = torch.randint(WIDTH,(N, 1)).to(dtype=torch.float)
-    height = torch.randint(HEIGHT,(N, 1)).to(dtype=torch.float)
-    vx = torch.randint(-5000,5000,(N, 1)).to(dtype=torch.float)
-    vy = torch.randint(-5000,5000,(N, 1)).to(dtype=torch.float)
+    width = torch.randint(10,WIDTH-10,(N, 1)).to(dtype=torch.float)
+    height = torch.randint(10,HEIGHT-10,(N, 1)).to(dtype=torch.float)
+    vx = torch.randint(-500,500,(N, 1)).to(dtype=torch.float)
+    vy = torch.randint(-500,500,(N, 1)).to(dtype=torch.float)
     ringo = torch.cat((width, height, vx, vy), dim = 1)
     color = torch.randint(30,230, (N, 3))
+    illum = torch.randint(0,100,(N,1))
 
     COLL_DIST = RADIUS * 2
     
@@ -52,7 +53,7 @@ def main():
         S_E.append(sE)
         Temp.append(temp)  
         lighting = (int(230*sE/4.2) , int(250*sE/4.2), int(210*sE/4.2)+45)
-        arty[:,2:] = (arty[:,2:] * sE/4).to(dtype = torch.int)
+        arty[:,2:] = (arty[:,2:] * torch.nan_to_num(torch.where(illum < 5, 1., torch.nan),nan=sE/4)).to(dtype = torch.int)
         draw_window(arty,lighting) 
         time_step += 1
     pygame.quit()

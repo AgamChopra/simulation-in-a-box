@@ -15,7 +15,7 @@ T_coeff, T_bar, a_T, b_T = 21, torch.tensor((1.5,4.5,15)), torch.tensor((-0.2,-0
 S_bar, a_S, b_S = torch.tensor((20,25)), torch.tensor((-0.001,-0.0008)), torch.tensor((0,0))
 N1_bar, a_N1, b_N1 = torch.tensor((2,5)), torch.tensor((-0.002,-0.00054)), torch.tensor((0,0))
 N2_bar, a_N2, b_N2 = torch.tensor((4,1)), torch.tensor((-0.008,-0.0001)), torch.tensor((0,0))
-day_night = 0.85
+day_night = 2
 
 
 def T(t, T_coeff, T_bar, a, b, Solar):
@@ -94,12 +94,10 @@ def dynamics(ringo, color, time_step, RADIUS = 10, COLL_DIST = 10., MASS = 1E-6,
     x = x + dx
     
     # Applying boundry conditions 
-    v = v * torch.cat((torch.where(((x[:,0] > WIDTH) * v[:,0]) > 0, -1, 1).reshape(x.shape[0], 1),
-                        torch.where(((x[:,1] > HEIGHT) * v[:,1]) > 0, -1, 1).reshape(x.shape[0], 1)),1) *\
-            torch.cat((torch.where(((x[:,0] < 0) * v[:,0]) < 0, -1, 1).reshape(x.shape[0], 1),
-                        torch.where(((x[:,1] < 0) * v[:,1]) < 0, -1, 1).reshape(x.shape[0], 1)),1)
-    x = torch.nan_to_num(x * torch.cat((torch.where(x[:,0] > WIDTH, torch.nan, 1.).reshape(x.shape[0], 1), torch.ones((x.shape[0],1))),1), nan=WIDTH)
-    x = torch.nan_to_num(x * torch.cat((torch.ones((x.shape[0],1)),torch.where(x[:,1] > HEIGHT, torch.nan, 1.).reshape(x.shape[0], 1)),1), nan=HEIGHT)
+    v = v * torch.cat((torch.where(((x[:,0] > WIDTH-10) * v[:,0]) > 0, -1, 1).reshape(x.shape[0], 1),
+                        torch.where(((x[:,1] > HEIGHT-10) * v[:,1]) > 0, -1, 1).reshape(x.shape[0], 1)),1) *\
+            torch.cat((torch.where(((x[:,0] < 10) * v[:,0]) < 0, -1, 1).reshape(x.shape[0], 1),
+                        torch.where(((x[:,1] < 10) * v[:,1]) < 0, -1, 1).reshape(x.shape[0], 1)),1)
     
     # Outputs
     arty = torch.cat((x.to(dtype = torch.int32),color),dim = 1)
