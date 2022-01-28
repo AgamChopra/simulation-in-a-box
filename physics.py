@@ -1,9 +1,11 @@
 import torch
+from math import sin
 from matplotlib import pyplot as plt
 
 # Medium = H2O. Physical properties of H2O -> https://www.engineersedge.com/physics/water__density_viscosity_specific_weight_13146.htm
 
 PI = torch.pi
+
 temp = []
 mu = []
 solar = []
@@ -13,6 +15,7 @@ T_coeff, T_bar, a_T, b_T = 21, torch.tensor((1.5,4.5,15)), torch.tensor((-0.2,-0
 S_bar, a_S, b_S = torch.tensor((20,25)), torch.tensor((-0.001,-0.0008)), torch.tensor((0,0))
 N1_bar, a_N1, b_N1 = torch.tensor((2,5)), torch.tensor((-0.002,-0.00054)), torch.tensor((0,0))
 N2_bar, a_N2, b_N2 = torch.tensor((4,1)), torch.tensor((-0.008,-0.0001)), torch.tensor((0,0))
+day_night = 0.85
 
 
 def T(t, T_coeff, T_bar, a, b, Solar):
@@ -37,7 +40,7 @@ def Fd(T,r,v):
 
 def Solar_E(t, bar, a, b):
     # Solar Energy. Amount of Energy available per photo_org_neuron per timestep.
-    return torch.log(20 + torch.abs(torch.sum(bar * torch.sin(a*t + b)) + torch.exp(PI * torch.rand(())))).to(dtype=torch.int32)
+    return torch.log(20 + torch.abs(torch.sum(bar * torch.sin(a*t + b))))
 
 
 def N1(t, bar, a, b):
@@ -48,7 +51,7 @@ def N2(t, bar, a, b):
     return 2 + torch.abs(torch.sum(bar * torch.sin(a*t + b)) + torch.exp(torch.rand(())))
 
 
-def dynamics(cell_dynamics, color, time_step, RADIUS = 10, COLL_DIST = 10., MASS = 1E-6, SPF = 1, WIDTH = 1600, HEIGHT = 900):   
+def dynamics(ringo, color, time_step, RADIUS = 10, COLL_DIST = 10., MASS = 1E-6, SPF = 1/144, WIDTH = 1600, HEIGHT = 900):   
     '''
     Drag and Collision Physics:
         Rules:
@@ -66,33 +69,43 @@ def dynamics(cell_dynamics, color, time_step, RADIUS = 10, COLL_DIST = 10., MASS
             arty. tensor of shape [N,5], [N,positions(2),color(3)]
             cell_dynamics. updated cell positions and velocities after the physics step.
     '''
-    v = cell_dynamics[:,2:]
-    a = cell_dynamics[:,:2]
+    v = ringo[:,2:]
+    x = ringo[:,:2]
+    
+    SOLAR = Solar_E(time_step, S_bar, a_S, b_S) * (sin(time_step * day_night) + 1) * 0.5
+    TEMP = T(time_step, T_coeff, T_bar, a_T, b_T, SOLAR)
+    N_1 = N1(time_step, N1_bar, a_N1, b_N1)
+    N_2 = N2(time_step, N2_bar, a_N2, b_N2)
     
     # Drag on the particle slowing down current velocity.
-    F_drag = Fd(T(time_step, T_coeff, T_bar, a_T, b_T, Solar_E(time_step, S_bar, a_S, b_S)),RADIUS * 1E-6,v)
+    F_drag = Fd(TEMP,RADIUS * 1E-6,v)
     dv_drag = F_drag * SPF / MASS
     v = v + (dv_drag * torch.where(torch.abs(v) < torch.abs(dv_drag), 0, 1)) - ( 0.1 * v * torch.where(torch.abs(v) < torch.abs(dv_drag), 1, 0)) # Condition to prevent incorrect drag force(to preserve Conservation of Energy)  when slow particle velocity assumption is broken. We assume in such a case that the fluid exerts a linear drag if velocity increases corrosponding to the particles min. velocity threshold in the medium.
     
     # Calculating collisions
-    dist = torch.cdist(a, a)
+    dist = torch.cdist(x, x)
+    
     v_col = torch.where(dist > COLL_DIST, 1., 0.)
     v_col = torch.sum(v_col,dim=1)
     theta = v.shape[0] - 1
     v_col = torch.where(v_col < theta, 0., 1.)
     v = v * v_col.view(v.shape[0],1)
     dx = v * SPF
-    pos = a + dx
+    x = x + dx
     
     # Applying boundry conditions 
-    v = v * torch.cat((torch.where(pos[:,0] > WIDTH - 1, -1, 1).view(pos.shape[0],1),torch.where(pos[:,1] > HEIGHT - 1, -1, 1).view(pos.shape[0],1)),1) * torch.where(pos < 1, -1, 1)
+    v = v * torch.cat((torch.where(((x[:,0] > WIDTH) * v[:,0]) > 0, -1, 1).reshape(x.shape[0], 1),
+                        torch.where(((x[:,1] > HEIGHT) * v[:,1]) > 0, -1, 1).reshape(x.shape[0], 1)),1) *\
+            torch.cat((torch.where(((x[:,0] < 0) * v[:,0]) < 0, -1, 1).reshape(x.shape[0], 1),
+                        torch.where(((x[:,1] < 0) * v[:,1]) < 0, -1, 1).reshape(x.shape[0], 1)),1)
+    x = torch.nan_to_num(x * torch.cat((torch.where(x[:,0] > WIDTH, torch.nan, 1.).reshape(x.shape[0], 1), torch.ones((x.shape[0],1))),1), nan=WIDTH)
+    x = torch.nan_to_num(x * torch.cat((torch.ones((x.shape[0],1)),torch.where(x[:,1] > HEIGHT, torch.nan, 1.).reshape(x.shape[0], 1)),1), nan=HEIGHT)
     
     # Outputs
-    arty = torch.cat((pos.to(dtype = torch.int32),color),dim = 1)
-    cell_dynamics = torch.cat((pos,v),dim = 1)
+    arty = torch.cat((x.to(dtype = torch.int32),color),dim = 1)
+    ringo = torch.cat((x,v),dim = 1)
     
-    return arty, cell_dynamics
-
+    return arty, ringo, SOLAR, TEMP, N_1, N_2
 
 def main():
     for i in range(0,100000):
@@ -131,3 +144,4 @@ def main():
 #%%   
 if __name__ == '__main__':
     main()
+#%%

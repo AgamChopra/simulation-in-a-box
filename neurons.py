@@ -144,3 +144,7 @@ class hidden_recurrent_neuron(nn.Module):
 #NEURON ID LIST
 
 #GENE TO BRAIN GENERATOR
+
+#HARDCODE
+
+#INTERFACE
