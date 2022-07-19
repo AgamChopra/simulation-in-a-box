@@ -8,8 +8,8 @@ pygame.display.set_caption('Evolve')
 
 BLACK = (0,0,0)
 WHITE = (255,255,255)
-FPS = 45
-RADIUS = 5
+FPS = 144#45
+RADIUS = 3
 
 
 def draw_window(arty, lighting):
@@ -22,21 +22,22 @@ def main():
     clock = pygame.time.Clock()
     run = True 
     
-    N = 1000
+    N = 1200 # upper limit on threshold.
     
     width = torch.randint(10,WIDTH-10,(N, 1)).to(dtype=torch.float)
     height = torch.randint(10,HEIGHT-10,(N, 1)).to(dtype=torch.float)
-    vx = torch.randint(-500,500,(N, 1)).to(dtype=torch.float)
-    vy = torch.randint(-500,500,(N, 1)).to(dtype=torch.float)
+    
+    vx = torch.randint(-500,500,(N, 1)).to(dtype=torch.float) #transfer over to cell function. updated every step.
+    vy = torch.randint(-500,500,(N, 1)).to(dtype=torch.float) #transfer over to cell function. updated every step.
+    
     ringo = torch.cat((width, height, vx, vy), dim = 1)
-    color = torch.randint(30,230, (N, 3))
-    illum = torch.randint(0,100,(N,1))
+    
+    color = torch.randint(30,250, (N, 3)) #transfer to genes. updated at birth.
+    illum = torch.randint(0,100,(N,1)) #transfer to genes. updated at birth.
 
     COLL_DIST = RADIUS * 2
     
     time_step = 0
-    
-    #lighting = (2,20,70)
     
     Temp = []
     
@@ -53,7 +54,7 @@ def main():
         S_E.append(sE)
         Temp.append(temp)  
         lighting = (int(230*sE/4.2) , int(250*sE/4.2), int(210*sE/4.2)+45)
-        arty[:,2:] = (arty[:,2:] * torch.nan_to_num(torch.where(illum < 5, 1., torch.nan),nan=sE/4)).to(dtype = torch.int)
+        arty[:,2:] = (arty[:,2:] * torch.nan_to_num(torch.where(illum < 5, 1., torch.nan),nan=sE/4.2)).to(dtype = torch.int)
         draw_window(arty,lighting) 
         time_step += 1
     pygame.quit()
