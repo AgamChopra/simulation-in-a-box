@@ -47,7 +47,7 @@ def bin_to_rgb_illum(string):
     r = sum([int(string[i]) * 2 ** (7 - i) for i in range(8)])
     g = sum([int(string[8 + i]) * 2 ** (7 - i) for i in range(8)])
     b = sum([int(string[16 + i]) * 2 ** (7 - i) for i in range(8)])
-    i = string[-1] == '1'
+    i = string[24] == '1'
     return (r,g,b,i)
 
 
@@ -57,29 +57,41 @@ def split_seq(utg):
     sink_type = utg[8]  # sink/aka the output. output neuron or hidden neuron
     sink_id = utg[9:16]  # id of output neuron or output hidden neuron
     recurrent = utg[16]  # if the neuron has memory
-    weight = utg[17:]# value of weight's first bit represents the sign(0:+ve,1:-ve) # weight = [sign] [11 bits] [.] [11 bits]. ex- 1 11111111111 . 11111111111 -> -2047.99951171875
+    weight = utg[17:40]# value of weight's first bit represents the sign(0:+ve,1:-ve) # weight = [sign] [11 bits] [.] [11 bits]. ex- 1 11111111111 . 11111111111 -> -2047.99951171875
     ##lr = utg[40:] sequence of 5 bits
     return source, source_id, sink_type, sink_id, recurrent, weight
 
+
+def mutation_guarding_gene(N = 4):
+    gene = []
+    [gene.append('0') for _ in range(N)]
+    return ''.join(gene)
+
+
 def main():
-    gene = 'AX0W1ZXX' #<- how gene is stored(in memory) and displayed(to user)
-    color = '0X0A0'
-    #print(gene, untangle(gene))
-    #print(color, untangle(color))
-    for i in range(5000):
+    # Note: trailing 0s are for mutation defense...
+    gene = 'AX0W1ZXX'+mutation_guarding_gene(8)#<- how gene is stored(in memory) and displayed(to user) #single gene
+    color = '0X0A0'+mutation_guarding_gene(8) #color gene associated with cell
+    print(gene, untangle(gene))
+    print(color, untangle(color))
+    for i in range(1000):
+        
         utg = untangle(gene) #<- gene is untangled to a binary sequence to be used by the cell
         utg = mutate(utg) #<- during reproduction, there is a small chance(global_mutation factor) that a bit gets flipped in the untangled binary gene sequence.
         gene = tangle(utg) #<- After reproduction, the gene is tangled and stored in memory.
+        
         utg2 = untangle(color) 
         utg2 = mutate(utg2) 
         color = tangle(utg2)
+        
         if((i+1) % 50 == 0):
-            #print(gene, untangle(gene))
+            print(gene, untangle(gene))
             source, source_id, sink_type, sink_id, recurrent, weight = split_seq(utg)
             #print(source, source_id, sink_type, sink_id, recurrent, weight)
             print('weight:', bin_to_float(weight))
-            #print(color,untangle(color))
+            print(color,untangle(color))
             print('color:',bin_to_rgb_illum(untangle(color)))
+            print('\n')
             
 #%%   
 if __name__ == '__main__':

@@ -8,7 +8,7 @@ pygame.display.set_caption('Evolve')
 
 BLACK = (0,0,0)
 WHITE = (255,255,255)
-FPS = 144#45
+FPS = 144
 RADIUS = 3
 
 
@@ -16,6 +16,15 @@ def draw_window(arty, lighting):
     DISH.fill(lighting)
     [pygame.draw.circle(DISH, [cell[2], cell[3], cell[4]], (cell[0], cell[1]), RADIUS) for cell in arty]
     pygame.display.update()
+    
+    
+def make_cell(gene_type):
+    cell = None
+    return 
+
+def birth_cell(gene1,gene2=None):
+    cell = None
+    return cell
 
 
 def main():
@@ -50,7 +59,7 @@ def main():
             if event.type == pygame.QUIT:
                 run = False
                 
-        arty, ringo, sE, temp, n1, n2 = physics.dynamics(ringo, color, time_step/FPS, COLL_DIST=COLL_DIST, RADIUS=RADIUS*1E-6, MASS=1E-13, WIDTH=WIDTH, HEIGHT=HEIGHT, SPF = 1/FPS)
+        arty, ringo, sE, temp, n1, n2 = physics.dynamics(ringo, color, time_step/FPS, COLL_DIST=COLL_DIST, RADIUS=RADIUS*1E-6, MASS=1E-13, WIDTH=WIDTH, HEIGHT=HEIGHT, SPF = 1.67E-2)
         S_E.append(sE)
         Temp.append(temp)  
         lighting = (int(230*sE/4.2) , int(250*sE/4.2), int(210*sE/4.2)+45)
@@ -65,6 +74,20 @@ def main():
     physics.plt.plot(S_E,'orange')
     physics.plt.title('Solar Energy')
     physics.plt.show()
+    
+
+# ringo (N,4) (:,:2)-> x,y positions (:,2:)-> x,y velocity. ringo passed to the physics engine.
+# arty (N,6) -> x,y positions , r,g,b colors, i illumination
+# Step 1: Initialize initial conditions
+# Step 2: cells interact with environment and do work based on neurons associated with genes... colors are updated for arty in Step 4.
+# Step 3: ringo is updated based on Step 2...
+# Step 4: physics ia applied based on ringo and arty is updated based on Step 3 and 2...
+# Step 5: loop over step 2 to 4...
+class environment():
+    def __init__(self,pop_cap=1000,start_pop=50):
+        SOLAR, TEMP, N_1, N_2 = 0,0,0,0
+        self.objects = {'Environment':[SOLAR, TEMP, N_1, N_2]} #All allive cells will have a unique id. after death cell turns into N1, N2, and TEMP...
+        for i in range
 
 
 if __name__ == '__main__':

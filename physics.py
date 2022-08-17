@@ -58,8 +58,8 @@ def dynamics(ringo, color, time_step, RADIUS = 10, COLL_DIST = 10., MASS = 1E-6,
             For drag, velocity has to be assumed to be very small.
             If Particles have a distance <= COLL_DIST, they collide and stop. We assume that the cells are very squishy and sticky in a relatively dense medium.
         Variables:
-            cell_dynamics. [N,4] tensor. [:,:2] -> x,y positions of the particles, [:,2:] -> vx,vy velocities of those particles after neural network updates.
-            color. [N,3] tensor storing R,G,B color values corrosponding to the N cells. Read directly from the genes.
+            ringo. [N,4] tensor. [:,:2] -> x,y positions of the particles, [:,2:] -> vx,vy velocities of those particles after neural network updates.
+            color. [N,4] tensor storing R,G,B,Illumination color values corrosponding to the N cells. Read directly from the genes.
             time_step. Current time step of the simulation.
             Radius. Radius of the particles.
             COLL_DIST. min. collision distance for the particles.
