@@ -16,7 +16,7 @@ decodings = dict([(value, key) for key, value in encodings.items()])
 def untangle(gene):
     sequence = ''
     for char in gene:
-        sequence += encodings[char] 
+        sequence += encodings[char]
     return sequence
 
 
@@ -37,18 +37,18 @@ def tangle(sequence):
 
 def bin_to_float(string):
     num1 = sum([int(string[1 + i]) * 2 ** (10 - i) for i in range(11)])
-    num2 = sum([int(string[12 + i]) * 2 ** -(1 + i) for i in range(0,11)])
+    num2 = sum([int(string[12 + i]) * 2 ** -(1 + i) for i in range(0, 11)])
     return num1 + num2 if string[0] == '0' else -(num1 + num2)
 
 
 def bin_to_rgb_illum(string):
-    #8 bit each for r,g,b. 1 bit for illumination(yes/no).
-    #ex- 'ZZZZZ' -> (255,255,255,True)
+    # 8 bit each for r,g,b. 1 bit for illumination(yes/no).
+    # ex- 'ZZZZZ' -> (255,255,255,True)
     r = sum([int(string[i]) * 2 ** (7 - i) for i in range(8)])
     g = sum([int(string[8 + i]) * 2 ** (7 - i) for i in range(8)])
     b = sum([int(string[16 + i]) * 2 ** (7 - i) for i in range(8)])
     i = string[24] == '1'
-    return (r,g,b,i)
+    return (r, g, b, i)
 
 
 def split_seq(utg):
@@ -57,12 +57,13 @@ def split_seq(utg):
     sink_type = utg[8]  # sink/aka the output. output neuron or hidden neuron
     sink_id = utg[9:16]  # id of output neuron or output hidden neuron
     recurrent = utg[16]  # if the neuron has memory
-    weight = utg[17:40]# value of weight's first bit represents the sign(0:+ve,1:-ve) # weight = [sign] [11 bits] [.] [11 bits]. ex- 1 11111111111 . 11111111111 -> -2047.99951171875
-    ##lr = utg[40:] sequence of 5 bits
+    # value of weight's first bit represents the sign(0:+ve,1:-ve) # weight = [sign] [11 bits] [.] [11 bits]. ex- 1 11111111111 . 11111111111 -> -2047.99951171875
+    weight = utg[17:40]
+    # lr = utg[40:] sequence of 5 bits
     return source, source_id, sink_type, sink_id, recurrent, weight
 
 
-def mutation_guarding_gene(N = 4):
+def mutation_guarding_gene(N=4):
     gene = []
     [gene.append('0') for _ in range(N)]
     return ''.join(gene)
@@ -70,34 +71,40 @@ def mutation_guarding_gene(N = 4):
 
 def main():
     # Note: trailing 0s are for mutation defense...
-    gene = 'AX0W1ZXX'+mutation_guarding_gene(8)#<- how gene is stored(in memory) and displayed(to user) #single gene
-    color = '0X0A0'+mutation_guarding_gene(8) #color gene associated with cell
+    # <- how gene is stored(in memory) and displayed(to user) #single gene
+    gene = 'AX0W1ZXX'+mutation_guarding_gene(8)
+    # color gene associated with cell
+    color = '0X0A0'+mutation_guarding_gene(8)
     print(gene, untangle(gene))
     print(color, untangle(color))
     for i in range(1000):
-        
-        utg = untangle(gene) #<- gene is untangled to a binary sequence to be used by the cell
-        utg = mutate(utg) #<- during reproduction, there is a small chance(global_mutation factor) that a bit gets flipped in the untangled binary gene sequence.
-        gene = tangle(utg) #<- After reproduction, the gene is tangled and stored in memory.
-        
-        utg2 = untangle(color) 
-        utg2 = mutate(utg2) 
+
+        # <- gene is untangled to a binary sequence to be used by the cell
+        utg = untangle(gene)
+        # <- during reproduction, there is a small chance(global_mutation factor) that a bit gets flipped in the untangled binary gene sequence.
+        utg = mutate(utg)
+        # <- After reproduction, the gene is tangled and stored in memory.
+        gene = tangle(utg)
+
+        utg2 = untangle(color)
+        utg2 = mutate(utg2)
         color = tangle(utg2)
-        
-        if((i+1) % 50 == 0):
+
+        if ((i+1) % 50 == 0):
             print(gene, untangle(gene))
-            source, source_id, sink_type, sink_id, recurrent, weight = split_seq(utg)
-            #print(source, source_id, sink_type, sink_id, recurrent, weight)
+            source, source_id, sink_type, sink_id, recurrent, weight = split_seq(
+                utg)
+            # print(source, source_id, sink_type, sink_id, recurrent, weight)
             print('weight:', bin_to_float(weight))
-            print(color,untangle(color))
-            print('color:',bin_to_rgb_illum(untangle(color)))
+            print(color, untangle(color))
+            print('color:', bin_to_rgb_illum(untangle(color)))
             print('\n')
-            
-#%%   
+
+
 if __name__ == '__main__':
     main()
-        
+
 # Neuron gene -> 40 bits
 # Color gene -> 24 bits (r,g,b) + 1 unused bit
-# Vital gene (Max dv, Max Energy, Current Energy, Food Type(Self/Generator(Photo or Thermal),Predator,Scavenger,Paracitic,Combination), Preferred food color(only if cell is predator or both), 
+# Vital gene (Max dv, Max Energy, Current Energy, Food Type(Self/Generator(Photo or Thermal),Predator,Scavenger,Paracitic,Combination), Preferred food color(only if cell is predator or both),
 #             reproduction style(uni,2 parent, both), ...)
