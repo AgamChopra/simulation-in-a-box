@@ -12,13 +12,13 @@ from matplotlib import pyplot as plt
 
 class Neuron(nn.Module):
     def __init__(self, weights, charge_time=5, self_firing=False,
-                 plasticity=0.1):
+                 plasticity=False):
         super(Neuron, self).__init__()
         self.weights = nn.Parameter(weights, requires_grad=False)
         self.weights /= (((self.weights)**2).sum()**0.5 + 1E-6)
         self.tau = torch.tensor(0.)
         self.charge_time = charge_time  # in terms of frames
-        self.charge_timer = randint(0, charge_time)  # frame delay
+        self.charge_timer = 0
         self.self_firing = self_firing
         self.sigmoid = nn.Sigmoid()
         self.plasticity = plasticity
@@ -68,23 +68,26 @@ class Neuron(nn.Module):
 
 
 if __name__ == '__main__':
-    w = torch.rand((4), requires_grad=False)
-    neuron = Neuron(w, self_firing=False, plasticity=True)
+    w = torch.rand((100000,4), requires_grad=False)
+    neurons = [Neuron(w[i], self_firing=False, plasticity=True) for i in range(100000)]
     response = []
     synapse = [[], [], [], []]
-    [synapse[i].append(neuron.weights[i].item()) for i in range(len(synapse))]
+    [synapse[i].append(neurons[0].weights[i].item()) for i in range(len(synapse))]
 
-    for cycle in range(500):
-        if cycle < 200:
-            neuron.switch_on_fast_learning()
-        elif cycle < 450:
-            neuron.reset_learning()
-        else:
-            neuron.switch_off_learning()
-        x = torch.rand_like(w, requires_grad=False)
-        response.append(neuron(x).item())
-        [synapse[i].append(neuron.weights[i].item())
-         for i in range(len(synapse))]
+    for cycle in range(1):
+        print(cycle)
+        for i,neuron in enumerate(neurons):
+            if cycle < 200:
+                neuron.switch_on_fast_learning()
+            elif cycle < 450:
+                neuron.reset_learning()
+            else:
+                neuron.switch_off_learning()
+            x = torch.rand_like(w, requires_grad=False)
+            if i==0:
+                response.append(neuron(x).item())
+                [synapse[i].append(neuron.weights[i].item())
+                 for i in range(len(synapse))]
 
     plt.plot(response)
     plt.title('Neuron Output')

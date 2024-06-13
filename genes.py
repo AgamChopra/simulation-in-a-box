@@ -1,6 +1,10 @@
 import random
+from tqdm import trange
+import numpy as np
+from matplotlib import pyplot as plt
+from matplotlib.collections import LineCollection
 
-global_mutation = 0.002
+global_mutation = 0.005
 
 encodings = {'0': '00000', '1': '00001', '2': '00010', '3': '00011', '4': '00100',
              '5': '00101', 'A': '00110', 'B': '00111', 'C': '01000', 'D': '01001',
@@ -20,11 +24,16 @@ def untangle(gene):
     return sequence
 
 
-def mutate(sequence):
+def mutate(sequence, mutation_rate=0.1):
     sequence = list(sequence)
-    if global_mutation > random.random():
-        i = random.randrange(0, len(sequence))
-        sequence[i] = '1' if sequence[i] == '0' else '0'
+    # At least 10% or 1 mutation
+    num_mutations = max(1, int(len(sequence) * mutation_rate))
+    indices_to_mutate = random.sample(range(len(sequence)), num_mutations)
+
+    for i in indices_to_mutate:
+        if random.random() <= global_mutation:
+            sequence[i] = '1' if sequence[i] == '0' else '0'
+
     return ''.join(sequence)
 
 
@@ -41,26 +50,35 @@ def bin_to_float(string):
     return num1 + num2 if string[0] == '0' else -(num1 + num2)
 
 
-def bin_to_rgb_illum(string):
-    # 8 bit each for r,g,b. 1 bit for illumination(yes/no).
-    # ex- 'ZZZZZ' -> (255,255,255,True)
-    r = sum([int(string[i]) * 2 ** (7 - i) for i in range(8)])
-    g = sum([int(string[8 + i]) * 2 ** (7 - i) for i in range(8)])
-    b = sum([int(string[16 + i]) * 2 ** (7 - i) for i in range(8)])
-    i = string[24] == '1'
-    return (r, g, b, i)
+def create_neural_weights(utg):
+    neural_weights = []
+    for i in range(100):
+        start = 216 + i * 76  # Starting index for each set
+        slice1 = utg[start:start + 23]
+        slice2 = utg[start + 23:start + 46]
+        slice3 = utg[start + 46:start + 69]
+        charge_time = utg[start + 69:start + 74]
+        self_firing = utg[start + 74]
+        plastic = utg[start + 75]
+        neural_weights.append(
+            [slice1, slice2, slice3, charge_time, self_firing, plastic])
+    return neural_weights
 
 
 def split_seq(utg):
-    source = utg[0]  # input or hidden
-    source_id = utg[1:8]  # address of either input or hidden
-    sink_type = utg[8]  # sink/aka the output. output neuron or hidden neuron
-    sink_id = utg[9:16]  # id of output neuron or output hidden neuron
-    recurrent = utg[16]  # if the neuron has memory
-    # value of weight's first bit represents the sign(0:+ve,1:-ve) # weight = [sign] [11 bits] [.] [11 bits]. ex- 1 11111111111 . 11111111111 -> -2047.99951171875
-    weight = utg[17:40]
-    # lr = utg[40:] sequence of 5 bits
-    return source, source_id, sink_type, sink_id, recurrent, weight
+    eye = [utg[0], utg[1:24]]
+    thermal = [utg[24], utg[25:48]]
+    photo = [utg[48], utg[49:72]]
+    tactile = [utg[72], utg[73:96]]
+
+    velo_add = [utg[96], utg[97:120]]
+    orient = [utg[120], utg[121:144]]
+    kill = [utg[144], utg[145:168]]
+    eat = [utg[168], utg[169:192]]
+    reproduce = [utg[192], utg[193:216]]
+    neural_weights = create_neural_weights(utg)
+
+    return eye, thermal, photo, tactile, velo_add, orient, kill, eat, reproduce, neural_weights
 
 
 def mutation_guarding_gene(N=4):
@@ -69,42 +87,89 @@ def mutation_guarding_gene(N=4):
     return ''.join(gene)
 
 
-def main():
-    # Note: trailing 0s are for mutation defense...
-    # <- how gene is stored(in memory) and displayed(to user) #single gene
-    gene = 'AX0W1ZXX'+mutation_guarding_gene(8)
-    # color gene associated with cell
-    color = '0X0A0'+mutation_guarding_gene(8)
-    print(gene, untangle(gene))
-    print(color, untangle(color))
-    for i in range(1000):
+def generate_random_string(length):
+    characters = list(encodings.keys())
+    random_string = ''.join(random.choice(characters) for _ in range(length))
+    return random_string
 
-        # <- gene is untangled to a binary sequence to be used by the cell
+
+def calculate_similarity(segment):
+    return sum(int(bit) for bit in segment) / len(segment)
+
+
+def assign_color(eye, thermal, photo, tactile, velo_add, orient, kill, eat, reproduce):
+    green_segments = thermal[1] + photo[1]
+    red_segments = kill[1] + eat[1]
+    blue_segments = eye[1] + velo_add[1] + orient[1] + tactile[1]
+
+    green_alph = calculate_similarity(green_segments)
+    red_alph = calculate_similarity(red_segments)
+    blue_alph = calculate_similarity(blue_segments)
+
+    green = int((int(thermal[0]) * 127 + int(photo[0]) * 127) * green_alph)
+    red = int((int(kill[0]) * 127 + int(eat[0]) * 127) * red_alph)
+    blue = int((int(eye[0]) * 63 + int(velo_add[0]) * 63 + int(orient[0])
+               * 63 + int(tactile[0]) * 63) * blue_alph)
+
+    luminosity = int(reproduce[0], 2) % 2 == 1
+
+    return (red, green, blue, luminosity)
+
+
+def main():
+    required_length = 216 + 100 * 76
+    gene = generate_random_string(required_length)
+
+    red_values = []
+    green_values = []
+    blue_values = []
+    luminosity_values = []
+
+    for i in trange(10000):
         utg = untangle(gene)
-        # <- during reproduction, there is a small chance(global_mutation factor) that a bit gets flipped in the untangled binary gene sequence.
         utg = mutate(utg)
-        # <- After reproduction, the gene is tangled and stored in memory.
         gene = tangle(utg)
 
-        utg2 = untangle(color)
-        utg2 = mutate(utg2)
-        color = tangle(utg2)
-
-        if ((i+1) % 50 == 0):
-            print(gene, untangle(gene))
-            source, source_id, sink_type, sink_id, recurrent, weight = split_seq(
+        if ((i+1) % 1 == 0):
+            eye, thermal, photo, tactile, velo_add, orient, kill, eat, reproduce, neural_weights = split_seq(
                 utg)
-            # print(source, source_id, sink_type, sink_id, recurrent, weight)
-            print('weight:', bin_to_float(weight))
-            print(color, untangle(color))
-            print('color:', bin_to_rgb_illum(untangle(color)))
-            print('\n')
+            # print(gene)
+            # print('eye:', eye[0], bin_to_float(eye[1]))
+            color = assign_color(eye, thermal, photo, tactile,
+                                 velo_add, orient, kill, eat, reproduce)
+            red, green, blue, luminosity = color
+            red_values.append(red)
+            green_values.append(green)
+            blue_values.append(blue)
+            luminosity_values.append(luminosity)
+
+    # Plotting the RGB values over iterations
+    plt.figure(figsize=(15, 5))
+    plt.plot(red_values, label='Red', color='red')
+    plt.plot(green_values, label='Green', color='green')
+    plt.plot(blue_values, label='Blue', color='blue')
+    plt.xlabel('Iterations (in multiples of 50)')
+    plt.ylabel('Color Intensity (0-255)')
+    plt.title('Color Intensity over Iterations')
+    plt.legend()
+    plt.show()
+    
+    fig, ax = plt.subplots(figsize=(15, 5))
+    points = np.array([range(len(red_values)), range(len(red_values))]).T.reshape(-1, 1, 2)
+    segments = np.concatenate([points[:-1], points[1:]], axis=1)
+    
+    colors = np.array([list(color) for color in zip(red_values, green_values, blue_values)]) / 255
+    
+    lc = LineCollection(segments, colors=colors, linewidth=2)
+    ax.add_collection(lc)
+    ax.autoscale()
+    ax.set_xlim(0, len(red_values))
+    ax.set_ylim(0, 1)
+    ax.set_xlabel('Iterations (in multiples of 50)')
+    ax.set_ylabel('Normalized Intensity')
+    ax.set_title('Color Intensity over Iterations')
+    plt.show()
 
 
 if __name__ == '__main__':
     main()
-
-# Neuron gene -> 40 bits
-# Color gene -> 24 bits (r,g,b) + 1 unused bit
-# Vital gene (Max dv, Max Energy, Current Energy, Food Type(Self/Generator(Photo or Thermal),Predator,Scavenger,Paracitic,Combination), Preferred food color(only if cell is predator or both),
-#             reproduction style(uni,2 parent, both), ...)

@@ -3,77 +3,50 @@ import torch.nn as nn
 from neuron import Neuron
 
 # Sensory Organs
-
-
-class simple_eye_neuron(nn.Module):
+class eye_(nn.Module):
+    # Passive Energy Consumption(0-1): 0.01
     def __init__(self, weight):
-        super(simple_eye_neuron, self).__init__()
+        super(eye_, self).__init__()
 
     def forward(self, x):
         return
 
 
-class complex_eye_neuron(nn.Module):
+class thermal_(nn.Module):
+    # Passive Energy Consumption(0-1): 0.001
     def __init__(self, weight):
-        super(complex_eye_neuron, self).__init__()
+        super(thermal_, self).__init__()
 
     def forward(self, x):
         return
 
 
-class thermal_neuron(nn.Module):
+class photo_(nn.Module):
+    # Passive Energy Consumption(0-1): 0.001
     def __init__(self, weight):
-        super(thermal_neuron, self).__init__()
+        super(photo_, self).__init__()
 
     def forward(self, x):
         return
 
 
-class photo_neuron(nn.Module):
+class tactile_(nn.Module):
+    # Passive Energy Consumption(0-1): 0.001
     def __init__(self, weight):
-        super(photo_neuron, self).__init__()
-
-    def forward(self, x):
-        return
-
-
-class tactile_neuron(nn.Module):
-    def __init__(self, weight):
-        super(tactile_neuron, self).__init__()
-
-    def forward(self, x):
-        return
-
-
-class clock_neuron(nn.Module):
-    def __init__(self, weight):
-        super(clock_neuron, self).__init__()
-
-    def forward(self, x):
-        return
-
-
-class age_neuron(nn.Module):
-    def __init__(self, weight):
-        super(age_neuron, self).__init__()
-
-    def forward(self, x):
-        return
-
-
-class hunger_neuron(nn.Module):
-    def __init__(self, weight):
-        super(age_neuron, self).__init__()
+        super(tactile_, self).__init__()
 
     def forward(self, x):
         return
 
 
 # OUTPUT NEURONS
-class velocity_adding_neuron(nn.Module):
+class velocity_add_(nn.Module):
+    # Passive Energy Consumption(0-1): 0.005
+    # Active Energy Consumption(0-1): max(0.05, 0.5 * mass * velo ** 2)
+
     # Outputs % of max dv to be added to current velocity. tanh lets the nn decide the direction +ve 0-1 or -ve 0-1.
     def __init__(self, weight):
-        super(velocity_adding_neuron, self).__init__()
+        super(velocity_add_, self).__init__()
         self.w = weight
         self.nl = nn.Tanh()
 
@@ -81,20 +54,13 @@ class velocity_adding_neuron(nn.Module):
         return self.nl(self.w * x)  # tensor of size [2] corrosponding to x,y.
 
 
-class pheramon_output_neuron(nn.Module):
-    def __init__(self, weight):
-        super(pheramon_output_neuron, self).__init__()
-        self.w = weight
-        self.nl = nn.Sigmoid()
-
-    def forward(self, x):
-        return self.nl(self.w * x)
-
-
-class orientation_neuron(nn.Module):
+class orientation_(nn.Module):
+    # Passive Energy Consumption(0-1): 0.001
+    # Active Energy Consumption(0-1): max(0.01, mass * abs(coeff_drag))
+        
     # Angle the cell is pointing at. 0-360
     def __init__(self, weight):
-        super(orientation_neuron, self).__init__()
+        super(orientation_, self).__init__()
         self.w = weight
         self.nl = nn.Sigmoid()
 
@@ -102,10 +68,13 @@ class orientation_neuron(nn.Module):
         return self.nl(self.w * x) * 360.
 
 
-class kill_neuron(nn.Module):
+class kill_(nn.Module): # HIGH RISK HIGH REWARD, Takes A LOT of energy
+    # Passive Energy Consumption(0-1): 0.0
+    # Active Energy Consumption(0-1): 0.3
+
     # Perform kill action in the direction the cell is pointing.
     def __init__(self, weight):
-        super(kill_neuron, self).__init__()
+        super(kill_, self).__init__()
         self.w = weight
         self.nl = nn.Sigmoid()
 
@@ -113,10 +82,13 @@ class kill_neuron(nn.Module):
         return True if self.nl(self.w * x) > 0.5 else False
 
 
-class eat_neuron(nn.Module):
+class eat_(nn.Module):
+    # Passive Energy Consumption(0-1): 0.0
+    # Active Energy Consumption(0-1): 0.1
+
     # Perform eat action in the direction the cell is pointing.
     def __init__(self, weight):
-        super(eat_neuron, self).__init__()
+        super(eat_, self).__init__()
         self.w = weight
         self.nl = nn.Sigmoid()
 
@@ -124,38 +96,16 @@ class eat_neuron(nn.Module):
         return True if self.nl(self.w * x) > 0.5 else False
 
 
-class reproduce_neuron(nn.Module):
+#change this: make it so its sexual or asexual...
+class reproduce_(nn.Module):
+    # Passive Energy Consumption(0-1): 0.01
+    # Active Energy Consumption(0-1): 0.75
+
     # send a reproduction signal to the cell to initiate reproduction.
     def __init__(self, weight):
-        super(reproduce_neuron, self).__init__()
+        super(reproduce_, self).__init__()
         self.w = weight
         self.nl = nn.Sigmoid()
 
     def forward(self, x):
         return True if self.nl(self.w * x) > 0.5 else False
-
-
-# HIDDEN NEURONS
-
-class hidden_neuron(nn.Module):
-    def __init__(self, weight):
-        super(hidden_neuron, self).__init__()
-
-    def forward(self, x):
-        return
-
-
-class hidden_recurrent_neuron(nn.Module):
-    def __init__(self, weight):
-        super(hidden_recurrent_neuron, self).__init__()
-
-    def forward(self, x):
-        return
-
-# NEURON ID LIST
-
-# GENE TO BRAIN GENERATOR
-
-# HARDCODE
-
-# INTERFACE
